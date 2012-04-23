@@ -199,25 +199,19 @@ namespace MSMQPubSub
 
         private static string GetEndpointName(string value)
         {
-            string uri = value;
+            var match = 
+                System.Text.RegularExpressions.Regex.Match(value, 
+                    "(msmq://)?(?<Queue>([^@])*)(@(?<Machine>.*))?");
+                    
+            var queue = match.Groups["Queue"].Value;
+            var machine = match.Groups["Machine"].Value;
 
-            if (uri.StartsWith("msmq://"))
-                uri = uri.Remove(0, "msmq://".Length);
-
-            var queue = value;
-            var machine = ".";
-            if (uri.Contains("@"))
-            {
-                queue = uri.Split('@')[0];
-                machine = uri.Split('@')[1];
-            }
-
-            if (machine == "localhost")
+            if (machine == "localhost" || string.IsNullOrWhiteSpace(machine))
                 machine = ".";
 
             return machine + "\\private$\\" + queue;
         }
-
+        
         private void LogError(Message message, Exception exception = null)
         {
             if (exception != null)
